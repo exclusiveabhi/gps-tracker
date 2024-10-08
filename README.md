@@ -1,6 +1,6 @@
 # Child Safety Tracker 🚍
 
-GPS Tracker is a web and mobile application designed to provide real-time tracking for children and buses, similar to features found in "Where Is My Train" apps. It offers live location updates and an intuitive map view, allowing users to effortlessly monitor locations.
+Child Safety Tracker is a web and mobile application designed to provide real-time tracking for children and buses, similar to features found in "Where Is My Train" apps. It offers live location updates and an intuitive map view, allowing users to effortlessly monitor locations.
 
 ## Project Structure 🗂️
 
