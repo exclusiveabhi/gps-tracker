@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const BusLocation = require('./models/BusLocation'); // Import the BusLocation model
 
 const app = express();
 const port = 3000;
@@ -48,7 +49,7 @@ app.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ busNumber });
     if (user && await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign({ busNumber: user.busNumber }, 'secret_key');
+      const token = jwt.sign({ bus: user.busNumber }, 'secret_key');
       res.json({ token });
     } else {
       res.status(401).send('Invalid credentials');
@@ -67,7 +68,9 @@ const authenticate = (req, res, next) => {
       if (err) {
         return res.status(401).send('Invalid token');
       } else {
-        req.busNumber = decoded.busNumber;
+        console.log('Decoded token:', decoded); // Log the decoded token
+        req.busNumber = decoded.bus; // Ensure this matches the token payload
+        console.log('Bus number set to:', req.busNumber); // Log the bus number
         next();
       }
     });
@@ -75,13 +78,29 @@ const authenticate = (req, res, next) => {
     res.status(401).send('No token provided');
   }
 };
-
-// API to update bus location
 app.post('/update-location', authenticate, async (req, res) => {
   const { latitude, longitude } = req.body;
-  const busLocation = new BusLocation({ busNumber: req.busNumber, latitude, longitude });
-  await busLocation.save();
-  res.send('Location updated');
+
+  try {
+    // Check if a location entry already exists for the bus number
+    let busLocation = await BusLocation.findOne({ busNumber: req.busNumber });
+
+    if (busLocation) {
+      // Update existing location
+      busLocation.latitude = latitude;
+      busLocation.longitude = longitude;
+      await busLocation.save();
+      res.send('Location updated');
+    } else {
+      // Create new location
+      busLocation = new BusLocation({ busNumber: req.busNumber, latitude, longitude });
+      await busLocation.save();
+      res.json({ message: 'Location created', locationId: busLocation._id });
+    }
+  } catch (error) {
+    console.error('Error updating location:', error);
+    res.status(500).send('Error updating location');
+  }
 });
 
 // API to get bus location by bus number
@@ -92,5 +111,5 @@ app.get('/bus-location/:busNumber', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running at http://192.168.75.51:${port}`);
 });

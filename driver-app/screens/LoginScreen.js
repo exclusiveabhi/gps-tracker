@@ -8,12 +8,21 @@ const LoginScreen = ({ navigation }) => {
 
   const login = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/login', { busNumber, password });
+      const response = await axios.post('http://192.168.75.51:3000/login', { busNumber, password });
       const { token } = response.data;
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       navigation.navigate('Home', { busNumber });
     } catch (error) {
-      Alert.alert('Login failed', 'Invalid credentials');
+      if (error.response) {
+        // Server responded with a status other than 200 range
+        Alert.alert('Login failed', error.response.data);
+      } else if (error.request) {
+        // Request was made but no response received
+        Alert.alert('Login failed', 'No response from server');
+      } else {
+        // Something else happened while setting up the request
+        Alert.alert('Login failed', error.message);
+      }
     }
   };
 
