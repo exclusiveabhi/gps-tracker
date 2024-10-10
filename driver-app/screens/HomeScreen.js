@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { StyleSheet, View, Text, Button, Alert } from 'react-native';
 import * as Location from 'expo-location';
 import axios from 'axios';
@@ -6,8 +6,9 @@ import axios from 'axios';
 const HomeScreen = ({ route }) => {
   const { busNumber } = route.params;
   const [isTracking, setIsTracking] = useState(false);
+  const locationSubscription = useRef(null);
 
-  const trackLocation = async () => {
+  const startTracking = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission to access location was denied');
@@ -17,7 +18,7 @@ const HomeScreen = ({ route }) => {
     setIsTracking(true);
 
     // Watch position and update location every 10 seconds
-    Location.watchPositionAsync(
+    locationSubscription.current = await Location.watchPositionAsync(
       { accuracy: Location.Accuracy.High, timeInterval: 10000, distanceInterval: 10 },
       (location) => {
         axios.post('http://192.168.75.51:3000/update-location', {
@@ -40,13 +41,29 @@ const HomeScreen = ({ route }) => {
     );
   };
 
+  const stopTracking = () => {
+    if (locationSubscription.current) {
+      locationSubscription.current.remove();
+      locationSubscription.current = null;
+    }
+    setIsTracking(false);
+  };
+
+  const handleTracking = () => {
+    if (isTracking) {
+      stopTracking();
+    } else {
+      startTracking();
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text>Welcome, Bus {busNumber} Driver!</Text>
       <Button
-        title={isTracking ? "Tracking..." : "Track My Location"}
-        onPress={trackLocation}
-        color={isTracking ? "green" : "blue"}
+        title={isTracking ? "Stop Tracking" : "Track My Location"}
+        onPress={handleTracking}
+        color={isTracking ? "red" : "blue"}
       />
     </View>
   );

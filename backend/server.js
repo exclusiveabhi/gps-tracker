@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const BusLocation = require('./models/BusLocation'); // Import the BusLocation model
+const BusLocation = require('./models/BusLocation'); 
 
 const app = express();
 const port = 3000;
@@ -111,5 +111,5 @@ app.get('/bus-location/:busNumber', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running at http://192.168.75.51:${port}`);
+  console.log(`Server running at http://localhost:${port}`);
 });
